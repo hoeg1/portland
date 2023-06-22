@@ -1,0 +1,248 @@
+@charset "UTF-8";
+
+body {
+  font-family: sans-serif;
+  font-size: 16px;
+}
+
+.suit_heart   { color: orangered; }
+.suit_heart::before { white-space:pre; content: "\2665\A"; }
+.suit_diamond { color: darkorange; }
+.suit_diamond::before { white-space:pre; content: "\2666\A"; }
+.suit_club    { color: darkgreen; }
+.suit_club::before { white-space:pre; content: "\2663\A"; }
+.suit_spade   { color: midnightblue; }
+.suit_spade::before { white-space:pre; content: "\2660\A"; }
+
+.board {
+  background-color: yellowgreen;
+  border-radius: 12px;
+  margin: 5px;
+  padding: 5px;
+  width: 480px;
+}
+
+.player_box {
+  border-radius: 12px;
+  outline: 2px solid black;
+  margin: 5px;
+  padding: 5px 5px 10px 5px;
+}
+
+.player_hand {
+  display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.player_card {
+  font-family: sans-serif;
+  border-radius: 8px;
+  border: 2px solid blue;
+  background-color: white;
+  width: 64px;
+  height: 90px;
+  margin-right: 6px;
+}
+
+.player_card div {
+  line-height: 1em;
+  font-size: 32px;
+}
+
+.player_change {
+  margin-right: 24px;
+}
+
+.player_card[disabled] {
+  /* display: block; */
+  /* background-color: whitesmoke; */
+  border: 2px solid black;
+}
+
+.player_card.card_back {
+  background-color : #ffffff;
+  background-image:
+    repeating-linear-gradient( 45deg,rgba(0, 135, 255, 0.5) 0px 6px,	transparent 6px 20px),
+    repeating-linear-gradient( -45deg,rgba(95, 255, 0, 0.5) 0px 6px,	transparent 6px 20px);
+}
+
+.player_card.empty {
+  background-color: yellowgreen;
+  border: 2px solid black;
+}
+
+.ai_box {
+  border-radius: 12px;
+  outline: 2px solid darkgreen;
+  margin: 5px 5px 10px 5px;
+  padding: 5px;
+}
+
+.ai_hand {
+  display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.ai_card {
+  border-radius: 6px;
+  background-color: white;
+  border: 1px solid black;
+  width: 32px;
+  height: 48px;
+  margin-right: 6px;
+  text-align: center;
+}
+
+.ai_card div {
+  line-height: 1em;
+  margin-top: 0.5em;
+}
+
+.ai_card[disabled] {
+  background-color : #ffffff;
+  background-image:
+    repeating-linear-gradient( 45deg,rgba(0, 135, 255, 0.5) 0px 4px,	transparent 4px 10px),
+    repeating-linear-gradient( -45deg,rgba(95, 255, 0, 0.5) 0px 4px,	transparent 4px 10px);
+}
+
+.ai_card.empty {
+  background-color: yellowgreen;
+  background-image: none;
+}
+
+.ai_change {
+  margin-right: 24px;
+}
+
+.ai_yaku {
+  padding-top: 10px;
+  margin-left: 8px;
+  font-weight: bold;
+}
+
+
+.info_box {
+  margin: 2px 2px 6px 2px;
+}
+
+.ib_name {
+  font-weight: bold;
+}
+
+.ib_name[disabled] {
+  font-weight: 600;
+  margin-right: 0.5em;
+}
+
+.ib_name::after {
+  content: ":";
+}
+
+.ib_name::before {
+  content: "\025b6";
+}
+
+.ib_name[disabled]::before {
+  content: '';
+}
+
+.ib_state {
+  font-weight: bold;
+  margin-left: 32px;
+}
+
+.ib_state::before {
+  content: "PASSED";
+}
+.ib_state[disabled]::before {
+  content: '';
+}
+
+#msg_box {
+  text-align: center;
+}
+
+.pass_button {
+  width: 64px;
+  background-color: crimson;
+  color: white;
+  font-weight: 550;
+  border: 1px solid maroon;
+  border-radius: 3px;
+}
+
+.pass_button[disabled] {
+  width: 64px;
+  background-color: yellowgreen;
+  color: darkgreen;
+  font-weight: normal;
+  border: 1px solid darkgreen;
+  border-radius: 3px;
+}
+
+.player_yaku {
+  font-weight: bold;
+  margin-left: 24px;
+}
+
+#score_sheet {
+  font-size: smaller;
+  margin-bottom: 1rem;
+}
+
+#score_sheet table, th, td {
+  border-collapse: collapse;
+  border: solid 1px black;
+}
+
+#score_sheet th, td {
+  border: dashed 1px black;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+#score_sheet th {
+  background-color: silver;
+}
+
+#score_sheet td {
+  background-color: white;
+}
+
+#score_sheet td.sum {
+  text-align: right;
+}
+
+#game_log {
+  display: none;
+  overflow: auto;
+  width: 450px;
+  height: 160px;
+  border: 1px dashed black;
+  text-align: left;
+}
+
+#game_log p {
+  padding: 0rem 1rem 0rem 1rem;
+  line-height: 0.5rem;
+}
+
+.rulebook {
+  margin: 1rem;
+  margin-bottom: 3rem;
+}
+
+.rulebook h2 {
+  border-left: 0.8rem solid black;
+  border-bottom: 2px solid black;
+  padding-left: 0.6rem;
+}
+
+.rulebook h3 {
+  border-left: 0.4rem solid black;
+  padding-left: 0.5rem;
+  margin-top: 2rem;
+}
+
