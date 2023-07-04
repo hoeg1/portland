@@ -22,12 +22,15 @@ export const shuffle_array = function( ary ) {
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 class Player {
-  constructor(name, id, sakusen, kiai) {
+  constructor(name, id, sakusen=[], kiai=0) {
     this.name = name;
     this.id = id;
     this.is_player = id == 0;
     this.sakusen = sakusen;
     this.kiai = kiai;
+    //
+    this.konjo = 1.5 + Math.random(); // 1.5 ~ 2.5
+    this.S = sakusen[0] / this.konjo;
     //
     this.pile = new Pile();
     this.cur_card = null;
@@ -179,7 +182,7 @@ class Player {
         this.hand_view[i].setAttribute('disabled', 'disabled');
       }
     }
-    // pass
+    // 強制 pass
     if (this.hand.length != 0) {
       this.passed = false;
       if (this.is_player)
@@ -187,6 +190,8 @@ class Player {
       this.state_view.setAttribute('disabled', 'disabled');
     } else {
       this.pass();
+      if (!this.is_player)
+        this.pile_view.setAttribute('disabled', 'disabled');
     }
     // 役とvp
     this.redraw_yaku();
@@ -341,21 +346,22 @@ class Player {
       this.shift_sakusen(round);
       return true; // pass
     }
-    if (round == 6) { // ラウンド６なら引くしかねえ
-      return false;
+    // ラウンド６なら引くしかねえ
+    if (round == 6) {
+      return false; // 引く
     }
-    // ラウンド６じゃないなら
+    // ラウンド６じゃなく、まだ作戦上引ける余地があるなら
     // とりま自分の期待値を計算
     const my_kitai = this.get_kitai(pi[this.id].avg);
     if (this.sakusen[round] != 0) {
-      // 山札に余裕があって、手札が改善しそうなら引く
-      // もしくは自分が最下位なら引く
-      if (my_kitai > remove_tie(this.yaku) || vp[this.id].vp == 0) {
-        this.sakusen[ round ] -= 1;
+      // 山札に余裕があって、手札が改善しそうなら or 自分が最下位なら引く
+      if (this.S >= this.sakusen[round]
+        || (my_kitai > remove_tie(this.yaku) || vp[this.id].vp == 0)) {
+        this.sakusen[ round ] -= 1; // 次の余裕を無くす
         return false; // 引く
       }
     } else {
-      // 作戦上は引いてはいけないが……
+      // 作戦上、引いてはいけないが……
       if (round == 6) throw new Error('round = 6');
       if (this.sakusen[ round + 1 ] != 0 && vp[this.id].vp == 0) {
         let winner = 0;
@@ -371,6 +377,7 @@ class Player {
         }
       }
     }
+    // 諦める
     this.shift_sakusen(round);
     return true;
   }
@@ -387,7 +394,13 @@ class Player {
   }
 
   shift_sakusen(round) {
-    if (round != 6) this.sakusen[ round + 1 ] += this.sakusen[ round ];
+    const cur_saku = this.sakusen[ round ];
+    if (round < 6) {
+      this.sakusen[ round + 1 ] += cur_saku;
+      this.S = this.sakusen[ round + 1] / this.konjo;
+    } else {
+      this.S = this.sakusen[ 5 ] + cur_saku;
+    }
   }
 
   // 置くことに決めた
@@ -637,7 +650,7 @@ const on_start_button = () => {
     ["クイズ", [3, 1, 3, 5, 7,   3]], // 19...3
     ["ラッタ", [2, 2, 4, 6, 7,   1]], // 21...1
   ];
-  const kx = 0.1; // 気合計算の起点 TODO 現状使ってない
+  const kx = 0.1; // 気合計算の起点 => TODO 現状、ほぼ意味がない値
   const kiai_base = kx + Math.random() * kx; // AIの気風、勢い kx < ? < 2kx
   shuffle_array( kosei );
   for (let i = 0; i < n_players; ++i) {
