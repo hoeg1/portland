@@ -5,7 +5,7 @@
 
 　[とりあえず遊ぶ (Play Online)](https://hoeg1.github.io/portland/)
 
-# インターネット上のプレイ記録
+### インターネット上のプレイ記録
 
 [ゲームばっかりやってないで - 筆者と同じFlush大好き派？](https://yau-ichi.hatenablog.com/entry/2016/02/01/233505)
 

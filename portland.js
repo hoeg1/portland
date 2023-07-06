@@ -543,7 +543,8 @@ class PortlandView {
     this.add_total();
     await this.msg_alert('ゲーム終了 (Click to Next Game)');
     // new game
-    location.reload();
+    //location.reload();
+    this.all_clear();
   }
   create_table() {
     this.table = document.createElement('table');
@@ -616,6 +617,22 @@ class PortlandView {
     if (round == 1) {
       log.style.display = 'block';
     }
+  }
+
+  all_clear() {
+    const del = (name) => {
+      const tar = document.getElementById(name);
+      while (tar.lastChild) {
+        tar.removeChild( tar.lastChild );
+      }
+    };
+    del( 'player_space' );
+    del( 'ai_space' );
+    del( 'score_sheet' );
+    del( 'game_log' );
+    document.getElementById('game_log').style.display = 'none';
+    document.getElementById('msg_box').innerText = 'Press Start';
+    document.getElementById('game_space').style.visibility = 'visible';
   }
 }
 
