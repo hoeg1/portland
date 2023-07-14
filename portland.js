@@ -22,15 +22,11 @@ export const shuffle_array = function( ary ) {
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 class Player {
-  constructor(name, id, sakusen=[], kiai=0) {
+  constructor(name, id, sakusen=[]) {
     this.name = name;
     this.id = id;
     this.is_player = id == 0;
     this.sakusen = sakusen;
-    this.kiai = kiai;
-    //
-    this.konjo = 1.5 + Math.random(); // 1.5 ~ 2.5
-    this.S = sakusen[0] / this.konjo;
     //
     this.pile = new Pile();
     this.cur_card = null;
@@ -182,13 +178,18 @@ class Player {
         this.hand_view[i].setAttribute('disabled', 'disabled');
       }
     }
-    // 強制 pass
     if (this.hand.length != 0) {
       this.passed = false;
-      if (this.is_player)
+      if (this.is_player) {
+        if (this.pile.is_empty()) {
+          this.pile_view.removeAttribute('class');
+          this.pile_view.setAttribute('class', 'player_card empty');
+        }
         this.pass_button.setAttribute('disabled', 'disabled');
+      }
       this.state_view.setAttribute('disabled', 'disabled');
     } else {
+      // 手札ゼロなら強制 pass
       this.pass();
       if (!this.is_player)
         this.pile_view.setAttribute('disabled', 'disabled');
@@ -287,7 +288,7 @@ class Player {
         } else {
           this.get_pile();
           await sleep(500);
-          const idx = this.think_put();
+          const idx = this.think_put(round);
           this.put(idx);
         }
       }
@@ -318,109 +319,95 @@ class Player {
     }
   }
 
-  // 思考ルーチン
-  // まずはパスするか引くかを決める
-  think_pass(round, pi, vp) {
-    const N = pi.length;
-    const data = pi[this.id];
-    const enemy = [];
-    for (let i = 0; i < N; ++i) {
-      if (i == this.id) continue;
-      const win = pi[i].yaku > data.yaku;
-      if (win || (!pi[i].pass && pi[i].avg.length != 0)) {
-        enemy.push({
-          win: win,
-          dat: pi[i]}
-        );
+
+  // 交換したときの順位を予想
+  kitai(round, pi, vp) {
+    const lst = [];
+    for (let i = 0; i < pi.length; ++i) {
+      if (pi[i].pass) { // 確定してる
+        lst.push({idx: i, pt: remove_tie(vp[i].pt), vp: 0, jun: 0});
+      } else {
+        let k = 0;
+        if (pi[i].avg.length != 0) {
+          for (const ha of pi[i].avg) {
+            for (const e of ha) {
+              k += e.type * e.avg;
+            }
+          }
+          k = k / pi[i].avg.length;
+        }
+        lst.push({idx: i, pt: k, vp: 0, jun: 0});
       }
     }
-    // 他が全員自分より弱く、パス済みばかりならパス
-    if (enemy.length == 0) {
-      this.shift_sakusen(round);
+    lst.sort((a,b)=>b.pt - a.pt);
+    let jun = 0;
+    for (let i = lst.length - 1; i >= 0; --i) {
+      if (i != 0 && lst[i].pt != lst[i - 1]) {
+        jun += 1;
+      }
+      lst[i].vp = jun * round;
+      lst[i].jun = lst.length - jun;
+    }
+    lst.sort((a, b) => a.idx - b.idx);
+    return lst;
+  }
+
+  // 思考ルーチン
+  // パスするか引くかを決める
+  think_pass(round, pi, vp) {
+    const k = this.kitai(round, pi, vp);
+    const y = remove_tie(this.yaku);//pi[this.id].yaku);
+    if ( this.sakusen[ round - 1 ] == 0
+      || y == POKER.STRAIGHT || y == POKER.STRAIGHT_FLUSH
+      || y == POKER.FLUSH    || y == POKER.FULL_HOUSE
+      || (k[this.id].jun == 1 &&
+        y > (round < 5? POKER.ONE_PAIR:
+             round == 5? POKER.TWO_PAIR: POKER.THREE_OF_A_KIND)) ) {
+      if (round < 6) {
+        this.sakusen[ round ] += this.sakusen[ round - 1 ];
+      }
       return true;
     }
-    // 自分より強いか、まだパスしていないやつがいる
-    // しかし straight, flush, full house なら手を壊すから引かない
-    const yak = remove_tie(this.yaku);
-    if (yak == POKER.STRAIGHT || yak == POKER.FLUSH || yak == POKER.FULL_HOUSE) {
-      this.shift_sakusen(round);
-      return true; // pass
-    }
-    // ラウンド６なら引くしかねえ
-    if (round == 6) {
-      return false; // 引く
-    }
-    // ラウンド６じゃなく、まだ作戦上引ける余地があるなら
-    // とりま自分の期待値を計算
-    const my_kitai = this.get_kitai(pi[this.id].avg);
-    if (this.sakusen[round] != 0) {
-      // 山札に余裕があって、手札が改善しそうなら or 自分が最下位なら引く
-      if (this.S >= this.sakusen[round]
-        || (my_kitai > remove_tie(this.yaku) || vp[this.id].vp == 0)) {
-        this.sakusen[ round ] -= 1; // 次の余裕を無くす
-        return false; // 引く
-      }
-    } else {
-      // 作戦上、引いてはいけないが……
-      if (round == 6) throw new Error('round = 6');
-      if (this.sakusen[ round + 1 ] != 0 && vp[this.id].vp == 0) {
-        let winner = 0;
-        for (const e of enemy) {
-          const kitai = e.dat.pass?
-            remove_tie(e.dat.yaku): this.get_kitai(e.dat.avg);
-          if (kitai > my_kitai) winner += 1;
-        }
-        const avg = winner / enemy.length;
-        if (avg < this.kiai) {
-          this.sakusen[ round + 1 ] -= 1; // 次の余裕を無くす
-          return false; // 引く
-        }
-      }
-    }
-    // 諦める
-    this.shift_sakusen(round);
-    return true;
-  }
-
-  get_kitai(lst) {
-    let kitai = 0.0;
-    if (lst.length == 0) return 0;
-    for (const aa of lst) {
-      for (const a of aa) {
-        kitai += a.type * a.avg;
-      }
-    }
-    return kitai / lst.length;
-  }
-
-  shift_sakusen(round) {
-    const cur_saku = this.sakusen[ round ];
-    if (round < 6) {
-      this.sakusen[ round + 1 ] += cur_saku;
-      this.S = this.sakusen[ round + 1] / this.konjo;
-    } else {
-      this.S = this.sakusen[ 5 ] + cur_saku;
-    }
+    // 引く
+    this.sakusen[ round - 1 ] -= 1;
+    return false;
   }
 
   // 置くことに決めた
-  // TODO: ラストラウンド等で、どのカードを潰すか確率計算させたい
-  think_put() {
+  think_put(round) {
     if (this.cur_card == null) throw new Error('cur_card = null');
     if (this.hand.length != 5) throw new Error('hand.len != 5');
-    let best_idx = 0;
     let best = -100;
+    let bk = -100;
+    let bi = 0;
+    let bki = 0;
     for (let i = 0; i < 5; ++i) {
       const tmp = this.hand[i];
       this.hand[i] = this.cur_card;
+      //
       const score = calc_poker(this.hand);
       if (score > best) {
         best = score;
-        best_idx = i;
+        bi = i;
       }
+      const avg = think_avg(this.hand, this.pile);
+      let k = 0;
+      for (const ha of avg) {
+        for (const e of ha) {
+          k += e.type * e.avg;
+        }
+      }
+      k = k / avg.length;
+      if (k > bk) {
+        bk = k;
+        bki = i;
+      }
+      //
       this.hand[i] = tmp;
     }
-    return best_idx;
+    if (bk > best && this.sakusen[ round - 1 ] != 0)
+      return bki;
+    return bi;
   }
 }
 
@@ -514,7 +501,8 @@ class PortlandView {
           this.mes(`第 ${round} ラウンド: ${this.players[ turn ].name} の手番です`);
           await cur_turn.on_turn(round, pi, this.get_vp(round));
           // update
-          pi[turn].pass = cur_turn.passed;
+          // 手札が４枚以下ならどうせパス、山札ナシならどうせパス
+          pi[turn].pass = cur_turn.hand.length < 4 || cur_turn.pile.is_empty() || cur_turn.passed;
           if (!cur_turn.passed) {
             pi[turn].yaku = cur_turn.yaku;
             pi[turn].avg = think_avg(cur_turn.hand, cur_turn.pile);
@@ -533,7 +521,7 @@ class PortlandView {
         this.players[i].redraw_info_box();
       }
       this.add_table(round, lst);
-      this.add_log(round);
+      this.add_log(round, lst);
       // next round
       if (round < 6) {
         await sleep(1000);
@@ -606,10 +594,11 @@ class PortlandView {
     this.table.appendChild(tr);
     this.table.appendChild(tr2);
   }
-  add_log(round) {
+  add_log(round, vp) {
+    vp.sort((a, b) => a.idx - b.idx);
     let str = '<p>$Round: ' + round + '</p>';
-    for (const p of this.players) {
-      str += `<p>${p.toString()}</p>`;
+    for (let i = 0; i < this.N; ++i) {
+      str += `<p>${this.players[i].toString()} (+${vp[i].vp})</p>`;
     }
     str += '<br>';
     const log = document.getElementById('game_log');
@@ -636,6 +625,35 @@ class PortlandView {
   }
 }
 
+const rnd_saku1 = () => {
+  const lst = new Array(22);
+  lst.fill(true);
+  for (let i = 0; i < 5; ++i) {
+    lst.splice(Math.trunc(Math.random() * lst.length), 0, false);
+  }
+  const result = [];
+  let cnt = 0;
+  for (const t of lst) {
+    if (t) cnt += 1;
+    else {
+      result.push(cnt);
+      cnt = 0;
+    }
+  }
+  result.push(cnt);
+  // if (result.length != 6) throw new Error('err: ' + result);
+  return result;
+};
+
+const rnd_saku2 = () => {
+  const result = [0, 1, 2, 3, 4, 5]; // 15...7
+  for (let i = 0; i < 7; ++i) {
+    result[ Math.trunc(Math.random() * 6) ] += 1;
+  }
+  return result;
+};
+
+
 const on_start_button = () => {
   const game_space = document.getElementById('game_space');
   game_space.style.visibility = 'hidden';
@@ -661,20 +679,23 @@ const on_start_button = () => {
     ["ケイト", [2, 3, 3, 4, 6,   4]], // 18...4
     ["ルース", [2, 2, 2, 4, 7,   5]], // 17...5
     ["ムース", [1, 2, 2, 4, 8,   5]], // 17...5
-    ["ネイト", [1, 2, 2, 3, 7,   7]], // 15...7
+    ["ネイト", [1, 1, 2, 3, 8,   7]], // 15...7
     ["オーク", [1, 2, 2, 5, 7,   5]], // 17...5
     ["ピート", [1, 2, 2, 6, 7,   4]], // 18...4
-    ["クイズ", [3, 1, 3, 5, 7,   3]], // 19...3
+    ["キュー", [3, 1, 3, 5, 7,   3]], // 19...3
     ["ラッタ", [2, 2, 4, 6, 7,   1]], // 21...1
+    ["スライ", [0, 1, 2, 5, 6,   8]], // 14...8
+    ["トミー", [0, 1, 2, 4, 7,   8]], // 14...8
+    ["ユート", [0, 2, 2, 2, 7,   9]], // 13...8
+
+    ["ムサク", rnd_saku1()],
+    ["テケト", rnd_saku2()],
   ];
-  const kx = 0.1; // 気合計算の起点 => TODO 現状、ほぼ意味がない値
-  const kiai_base = kx + Math.random() * kx; // AIの気風、勢い kx < ? < 2kx
   shuffle_array( kosei );
   for (let i = 0; i < n_players; ++i) {
     const k = kosei.pop();
-    const kiai = (1.0 / n_players) - (kiai_base / 2.0) + (Math.random() * kiai_base);
-    // 名前, ID, 作戦, 気合
-    const com = new Player(k[0], i + 1, k[1], kiai);
+    // 名前, ID, 作戦
+    const com = new Player(k[0], i + 1, k[1]);
     ai_space.appendChild(com.box);
     players.push(com);
   }
