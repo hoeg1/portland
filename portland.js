@@ -601,6 +601,21 @@ class PortlandView {
       str += `<p>${this.players[i].toString()} (+${vp[i].vp})</p>`;
     }
     str += '<br>';
+    if (document.getElementById('cheat_log').checked) {
+      str += '<p>CHEAT MODE:</p>';
+      const lst = this.players[0].pile.to_list();
+      const SUIT = ['♣', '♦', '♥', '♠'];
+      const RANK = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+      for (const ll of lst) {
+        if (ll.length == 0) continue;
+        str += '<p>';
+        for (const l of ll) {
+          str += SUIT[ l.suit ] + RANK[ l.rank ] + ' ';
+        }
+        str += '</p>';
+      }
+      str += '<br>';
+    }
     const log = document.getElementById('game_log');
     log.innerHTML += str;
     if (round == 1) {

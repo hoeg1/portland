@@ -65,6 +65,21 @@ export class Pile {
       bit:  bit
     };
   }
+  to_list() {
+    const result = [];
+    for (let s = 0n; s < 4n; ++s) {
+      const mask = 0b0001000100010001000100010001000100010001000100010001n;
+      let suit = this.deck & (mask << s);
+      const lst = [];
+      while (suit != 0n) {
+        const card = suit & -suit;
+        lst.push( this.bit2card( card ) );
+        suit &= ~card;
+      }
+      result.push(lst);
+    }
+    return result;
+  }
   // rank_map[13] ... 各ランクの残りスートをビットで表現したもの(最大0b1111)
   // rank_cnt[13] ... 各ランクの残り枚数
   // suit_map[4]  ... 各スートの残りランクをビットで表現したもの(13bit)
