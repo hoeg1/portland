@@ -159,7 +159,7 @@ class Player {
     this.hand = [];
     for (let i = 0; i < 5; ++i) {
       if (this.pile.is_empty()) break;
-      this.hand[i] = this.pile.deal();
+      this.hand[i] = this.pile.deal(); // 新しい手札
     }
     // 再描画 => カードは存在しないかも
     for (let i = 0; i < 5; ++i) {
@@ -353,6 +353,11 @@ class Player {
   }
 
   // 思考ルーチン
+  // TODO: ６ラウンド目のとき、残り手札を総当たりしてベストを出すことが可能
+  //       init_round あたりで可能性を全部計算し、ベスト手札をメモ
+  //       ベスト手札になるまで引き、ベストと等しくなったら「パス」すると強いはず
+  //       計算量 = nC5 と相談しつつ、やるかやらないか決める: 15C5 くらいが限度？
+  // TODO2: 2 ≦ round ≦ 5 かつ vp が最下位なら、次のラウンドから作戦値を１前借り？
   // パスするか引くかを決める
   think_pass(round, pi, vp) {
     const k = this.kitai(round, pi, vp);
@@ -668,6 +673,18 @@ const rnd_saku2 = () => {
   return result;
 };
 
+const rnd_saku3 = () => {
+  const result = [0, 0, 2, 2, 4, 4]; // 12...10
+  let k = 10;
+  for (let i = 5; k > 0 && i >= 0; --i) {
+    const rnd = Math.min(k, Math.trunc(Math.random() * 4));
+    result[ i ] += rnd;
+    k -= rnd;
+  }
+  result[5] += k;
+  return result;
+};
+
 
 const on_start_button = () => {
   const game_space = document.getElementById('game_space');
@@ -699,12 +716,14 @@ const on_start_button = () => {
     ["ピート", [1, 2, 2, 6, 7,   4]], // 18...4
     ["キュー", [3, 1, 3, 5, 7,   3]], // 19...3
     ["ラッタ", [2, 2, 4, 6, 7,   1]], // 21...1
-    ["スライ", [0, 1, 2, 5, 6,   8]], // 14...8
+    ["スライ", [1, 1, 2, 5, 5,   8]], // 14...8
     ["トミー", [0, 1, 2, 4, 7,   8]], // 14...8
-    ["ユート", [0, 2, 2, 2, 7,   9]], // 13...8
+    ["ユート", [0, 2, 2, 2, 7,   9]], // 13...9
+    ["ヴァグ", [4, 3, 2, 3, 4,   6]], // 16...6
 
     ["ムサク", rnd_saku1()],
     ["テケト", rnd_saku2()],
+    ["ランダ", rnd_saku3()],
   ];
   shuffle_array( kosei );
   for (let i = 0; i < n_players; ++i) {
