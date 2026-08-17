@@ -1,0 +1,240 @@
+@charset "UTF-8";
+
+:root {
+  --cont-w: 70%;
+  --card-ratio: 63 / 88;
+
+  --cpu-fr: 4fr 3fr;
+
+  --card-w: 10svmin;
+  --card-border: 0.9svmin solid white;
+  --card-border-radius: 1.6svmin;
+  --card-font-size: 6svmin;
+  --card-line-height: 6svmin;
+
+  --mini-card-w: 5svmin;
+  --mini-card-border: 0.5svmin solid white;
+  --mini-card-border-radius: 1svmin;
+  --mini-card-font-size: 3svmin;
+  --mini-card-line-height: 3svmin;
+}
+
+@media screen and (max-width: 1024px) {
+  :root {
+    --cont-w: 80%;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  :root {
+    --cont-w: 100%;
+    --cpu-fr: 6fr 5fr;
+
+    --card-w: 12svmin;
+    --card-border: 1.0svmin solid white;
+    --card-border-radius: 1.8svmin;
+    --card-font-size: 7.2svmin;
+    --card-line-height: 7.2svmin;
+
+    --mini-card-w: 7svmin;
+    --mini-card-border: 0.6svmin solid white;
+    --mini-card-border-radius: 1svmin;
+    --mini-card-font-size: 4svmin;
+    --mini-card-line-height: 4svmin;
+  }
+}
+
+
+body {
+  background-color: green;
+  color: white;
+  margin: 0;
+  padding: 0;
+  font-family: monospace;
+}
+
+.container {
+  padding: 0;
+  margin: 0;
+
+  h1 {
+    border-bottom: 0.5svmin solid white;
+    line-height: 1em;
+    text-align: center;
+    margin: 0.1rem 0;
+    padding: 0;
+  }
+
+  .game {
+    width: var(--cont-w);
+    margin: 0 auto;
+    padding: 0;
+
+    .player-area {
+      text-align: center;
+      span {
+        display: inline-block;
+        width: var(--card-w);
+        aspect-ratio: var(--card-ratio);
+        border: var(--card-border);
+        border-radius: var(--card-border-radius);
+        writing-mode: vertical-lr; /* vertical-rl なら右から左*/
+        font-size: var(--card-font-size);
+        line-height: var(--card-line-height);
+        margin: 0 0.1rem;
+        /*padding: 0; -> クリックイベント拾えなくなる*/
+        text-align: left;
+        /* click   */
+        cursor: not-allowed;
+      }
+      span.click-ok {
+        cursor: pointer;
+      }
+      span.ma {
+        margin: 0 0 0 15px;
+      }
+    }
+
+
+    .cpu-area {
+      /* background-color: darkgreen; */
+      display: grid;
+      grid-template-columns: var(--cpu-fr);
+      padding: 0;
+      margin: 0;
+      .cpu-info {
+        margin: 0 1rem;
+        p {
+          line-height: 0.5rem;
+        }
+        .info-r {
+          text-align: right;
+          font-size: 0.9rem;
+        }
+      }
+      span {
+        display: inline-block;
+        width: var(--mini-card-w);
+        aspect-ratio: var(--card-ratio);
+        border: var(--mini-card-border);
+        border-radius: var(--mini-card-border-radius);
+        writing-mode: vertical-lr; /* vertical-rl なら右から左*/
+        font-size: var(--mini-card-font-size);
+        line-height: var(--mini-card-line-height);
+        margin: 0 0.1rem;
+        padding: 0;
+        text-align: left;
+      }
+    }
+  }
+
+  .r1::before { content: "Ａ"; }
+  .r2::before { content: "２"; }
+  .r3::before { content: "３"; }
+  .r4::before { content: "４"; }
+  .r5::before { content: "５"; }
+  .r6::before { content: "６"; }
+  .r7::before { content: "７"; }
+  .r8::before { content: "８"; }
+  .r9::before { content: "９"; }
+  .r10::before { text-combine-upright: all; content: "10"; }
+  .r11::before { content: "Ｊ"; }
+  .r12::before { content: "Ｑ"; }
+  .r13::before { content: "Ｋ"; }
+  .s1 { background-color: crimson; }
+  .s2 { background-color: darkblue; }
+  .s3 { background-color: orange; }
+  .s4 { background-color: darkgreen; }
+  .s1::after { content: "♥"; }
+  .s2::after { content: "♠"; }
+  .s3::after { content: "♦"; }
+  .s4::after { content: "♣"; }
+
+  .bk {
+    background-color: #0064ff;
+    background-image: repeating-linear-gradient(45deg, #ffffff80, #ffffff80 8px, transparent 8px, transparent 16px), repeating-linear-gradient(-45deg, #ffffff80, #ffffff80 8px, transparent 8px, transparent 16px);
+  }
+  .player-area .bk {
+    text-align: right;
+    text-combine-upright: all;
+    /*
+    writing-mode: vertical-rl;
+    text-align: right;
+    */
+    color: white;
+    -webkit-text-stroke: 4px #0064ff80;
+    paint-order: stroke fill; 
+    font-weight: bold;
+  }
+  .pass-but {
+    cursor: pointer;
+    width: 10rem;
+    height: 1.6rem;
+    margin: 0.5rem 0;
+    color: white;
+    background-color: crimson;
+    border: 2px solid maroon;
+    border-radius: 6px;
+  }
+  .next-mode {
+    cursor: pointer;
+    width: 10rem;
+    height: 1.6rem;
+    margin: 0.5rem 0;
+    border: 2px solid maroon;
+    border-radius: 6px;
+
+    color: maroon;
+    background-color: khaki;
+  }
+  .pass-but:disabled {
+    cursor: not-allowed;
+    background-color: silver;
+    border: 2px solid #707070;
+    color: #505050;
+  }
+
+  .setup {
+    text-align: center;
+    margin: 1rem 1rem;
+  }
+  .rulebook {
+    margin: 0 1rem;
+    span {
+      display: inline-block;
+      width: var(--mini-card-w);
+      aspect-ratio: var(--card-ratio);
+      border: var(--mini-card-border);
+      border-radius: var(--mini-card-border-radius);
+      writing-mode: vertical-lr; /* vertical-rl なら右から左*/
+      font-size: var(--mini-card-font-size);
+      line-height: var(--mini-card-line-height);
+      margin: 0 0.1rem;
+      padding: 0;
+      text-align: left;
+    }
+    P.yaku-name {
+      line-height: 1.6rem;
+      font-weight: bold;
+    }
+    P.yaku-info {
+      line-height: 1rem;
+      padding-left: 0.7rem;
+    }
+    h3 {
+      border-left: 0.5rem solid white;
+      padding-left: 0.5rem;
+      margin: 0.8rem 0;
+    }
+    h4 {
+      border-left: 0.3rem solid white;
+      padding-left: 0.3rem;
+      margin: 0.8rem 0;
+    }
+    p {
+      line-height: 1.6rem;
+      padding: 0;
+      margin: 0;
+    }
+  }
+}
