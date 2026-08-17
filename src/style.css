@@ -78,6 +78,7 @@ body {
         aspect-ratio: var(--card-ratio);
         border: var(--card-border);
         border-radius: var(--card-border-radius);
+        -webkit-writing-mode: vertical-lr;
         writing-mode: vertical-lr; /* vertical-rl なら右から左*/
         font-size: var(--card-font-size);
         line-height: var(--card-line-height);
@@ -118,6 +119,7 @@ body {
         aspect-ratio: var(--card-ratio);
         border: var(--mini-card-border);
         border-radius: var(--mini-card-border-radius);
+        -webkit-writing-mode: vertical-lr;
         writing-mode: vertical-lr; /* vertical-rl なら右から左*/
         font-size: var(--mini-card-font-size);
         line-height: var(--mini-card-line-height);
@@ -137,7 +139,11 @@ body {
   .r7::before { content: "７"; }
   .r8::before { content: "８"; }
   .r9::before { content: "９"; }
-  .r10::before { text-combine-upright: all; content: "10"; }
+  .r10::before {
+    -webkit-text-combine: horizontal;
+    text-combine-upright: all;
+    content: "10";
+  }
   .r11::before { content: "Ｊ"; }
   .r12::before { content: "Ｑ"; }
   .r13::before { content: "Ｋ"; }
