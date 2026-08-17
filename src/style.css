@@ -39,8 +39,8 @@
     --mini-card-w: 7svmin;
     --mini-card-border: 0.6svmin solid white;
     --mini-card-border-radius: 1svmin;
-    --mini-card-font-size: 4svmin;
-    --mini-card-line-height: 4svmin;
+    --mini-card-font-size: 3.5svmin;
+    --mini-card-line-height: 3.5svmin;
   }
 }
 
