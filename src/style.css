@@ -139,6 +139,10 @@ body {
   .r7::before { content: "７"; }
   .r8::before { content: "８"; }
   .r9::before { content: "９"; }
+  .r10 {
+    -webkit-text-combine: horizontal;
+    text-combine-upright: all;
+  }
   .r10::before {
     -webkit-text-combine: horizontal;
     text-combine-upright: all;
@@ -162,6 +166,7 @@ body {
   }
   .player-area .bk {
     text-align: right;
+    -webkit-text-combine: horizontal;
     text-combine-upright: all;
     /*
     writing-mode: vertical-rl;
@@ -212,6 +217,7 @@ body {
       aspect-ratio: var(--card-ratio);
       border: var(--mini-card-border);
       border-radius: var(--mini-card-border-radius);
+      -webkit-writing-mode: vertical-lr;
       writing-mode: vertical-lr; /* vertical-rl なら右から左*/
       font-size: var(--mini-card-font-size);
       line-height: var(--mini-card-line-height);
