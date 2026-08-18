@@ -336,6 +336,7 @@ export class Portland extends Rand {
           obj.same = p.sc;
           obj.lst.push([ p.pl ]);
         } else {
+          // 同点は多重配列に入れる
           obj.lst[ obj.lst.length - 1 ].push(p.pl);
         }
         return obj;
@@ -346,12 +347,12 @@ export class Portland extends Rand {
     for (const p of pp) {
       let k = 0;
       for (let i = 0; i < p.length; ++i) {
-        pt -= 1;
-        k += pt;
+        pt -= 1;                      // 同点が複数いたら pt は減るし
+        k += (pt * this.round_count); // k にその順位であれば取れた得点が加算
       }
-      k = Math.trunc(k / p.length);
+      k = Math.trunc(k / p.length); // 同点が複数いたら合計を折半
       for (const pl of p) {
-        pl.add_score(k * this.round_count);
+        pl.add_score(k); // 得点させる
       }
     }
     ////////////////////////////////////////////////////
